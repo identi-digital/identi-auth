@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authx
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: authx
+  template:
+    metadata:
+      labels:
+        app: authx
+    spec:
+      containers:
+      - image: AUTHX_BASE_IMAGE
+        name: authx
+        ports:
+        - containerPort: 9000
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authx-service
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/path:   /
+      prometheus.io/port:   '9000'
+spec:
+  selector:
+    app: authx
+  type: NodePort
+  ports:
+    - port: 9000
+      targetPort: 9000
+      name: authx
