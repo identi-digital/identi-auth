@@ -3,13 +3,9 @@ FROM python:3.10.13-alpine
 RUN apk add tzdata
 ENV TZ="America/Lima"
 WORKDIR /app
-COPY . .
+COPY ./src/ .
 
 RUN pip install pip --upgrade
-
-# Verify files
-RUN ls -l
-
 
 RUN pip install -r requirements.txt
 EXPOSE 9000
