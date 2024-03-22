@@ -124,7 +124,7 @@ pipeline {
 
                         echo "Imagen [${IMAGE_NAME}]"
                         
-                        sh "/kaniko/executor --context `pwd` --destination $IMAGE_NAME"
+                        sh "/kaniko/executor -f src/Dockerfile --context `pwd` --destination $IMAGE_NAME"
                     }
 
                     sh """
