@@ -116,15 +116,19 @@ pipeline {
                         echo '{"credsStore":"ecr-login"}' > \${dockerConfig}/config.json
                         '''
 
-                        // For ECR, IMAGE_NAME needs to append ECR repository full path
-                        // IMAGE_NAME = "{ECR_REPO}/identi-authx:v1.0.0-${env.BUILD_NUMBER}"
-                        IMAGE_NAME = "identi-authx:v1.0.0-${env.BUILD_NUMBER}"
+                        withCredentials([string(credentialsId: 'ECR_HOST', variable: 'ECR_HOST')]){
+                            // For ECR, IMAGE_NAME needs to append ECR repository full path
+                            IMAGE_NAME = "${ECR_HOST}/identi-authx:v1.0.0-${env.BUILD_NUMBER}"
+                            // IMAGE_NAME = "identi-authx:v1.0.0-${env.BUILD_NUMBER}"
+                        }
                         
                         sh "echo ${IMAGE_NAME} >> docker-image.txt"
 
                         echo "Imagen [${IMAGE_NAME}]"
                         
-                        sh "/kaniko/executor -f src/Dockerfile --context `pwd` --destination $IMAGE_NAME"
+                        withCredentials([aws(credentialsId: 'ECR_AUTH')]){
+                            sh "/kaniko/executor -f src/Dockerfile --context `pwd` --destination $IMAGE_NAME"
+                        }
                     }
 
                     sh """
