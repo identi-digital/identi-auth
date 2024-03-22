@@ -1,15 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mongo-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,9 +10,19 @@ spec:
       app: mongo-authx
   template:
     metadata:
+      # annotations:
+      #   vault.hashicorp.com/agent-inject: "true"
+      #   vault.hashicorp.com/role: "authx-role"
+      #   vault.hashicorp.com/agent-inject-dev-identi-authx-db: "dev/identi-authx-db"
+      #   vault.hashicorp.com/agent-inject-template-dev-identi-authx-db: |
+      #     {{- with secret "dev/identi-authx-db" -}}
+      #     export MONGO_INITDB_ROOT_USERNAME={{ .Data.ROOT_USERNAME }}
+      #     export MONGO_INITDB_ROOT_PASSWORD={{ .Data.ROOT_PASSWORD }}
+      #     {{- end -}}
       labels:
         app: mongo-authx
     spec:
+      serviceAccountName: identi-authx
       containers:
       - image: mongo:5
         name: mongo-authx
