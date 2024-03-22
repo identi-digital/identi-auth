@@ -127,11 +127,10 @@ pipeline {
                         echo "Imagen [${IMAGE_NAME}]"
                         
                         sh '''
-                        cd src
                         ls -l
                         '''
                         withCredentials([aws(credentialsId: 'ECR_AUTH')]){
-                            sh "/kaniko/executor --dockerfile Dockerfile --destination $IMAGE_NAME"
+                            sh "/kaniko/executor --context `pwd` --destination $IMAGE_NAME"
                         }
                     }
 
