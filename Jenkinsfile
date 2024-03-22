@@ -141,6 +141,19 @@ pipeline {
             }
         }
 
+        stage('Deploy') {
+            steps {
+                script {
+                    sh """
+                    echo "Image to DEPLOY [${IMAGE_NAME}]"
+                    cp deploy/deploy.template-yaml deploy/deploy.yaml
+                    sed -i -e '/image: /s|identi-auth:latest|${IMAGE_NAME}|g' deploy/deploy.yaml
+                    cat deploy/deploy.yaml
+                    """
+                }
+            }
+        }
+
     }
     
     post {
