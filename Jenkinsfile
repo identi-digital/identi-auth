@@ -131,7 +131,7 @@ pipeline {
                         ls -l
                         '''
                         withCredentials([aws(credentialsId: 'ECR_AUTH')]){
-                            sh "/kaniko/executor --destination $IMAGE_NAME"
+                            sh "/kaniko/executor --dockerfile Dockerfile --destination $IMAGE_NAME"
                         }
                     }
 
