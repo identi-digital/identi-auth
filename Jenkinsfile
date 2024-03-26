@@ -116,7 +116,7 @@ pipeline {
                         echo '{"credsStore":"ecr-login"}' > \${dockerConfig}/config.json
                         '''
 
-                        withCredentials([string(credentialsId: 'ECR_HOST', variable: 'ECR_HOST')]){
+                        withCredentials([string(credentialsId: 'ECR-Host', variable: 'ECR_HOST')]){
                             // For ECR, IMAGE_NAME needs to append ECR repository full path
                             IMAGE_NAME = "${ECR_HOST}/identi-authx:v1.0.0-${env.BUILD_NUMBER}"
                             // IMAGE_NAME = "identi-authx:v1.0.0-${env.BUILD_NUMBER}"
@@ -129,7 +129,7 @@ pipeline {
                         sh '''
                         ls -l
                         '''
-                        withCredentials([aws(credentialsId: 'ECR_AUTH')]){
+                        withCredentials([aws(credentialsId: 'ECR-Auth')]){
                             sh "/kaniko/executor --context `pwd` --destination $IMAGE_NAME"
                         }
                     }
@@ -148,9 +148,10 @@ pipeline {
                     echo "Image to DEPLOY [${IMAGE_NAME}]"
                     cp deploy/deploy.template-yaml deploy/deploy.yaml
                     sed -i -e '/image: /s|identi-auth:latest|${IMAGE_NAME}|g' deploy/deploy.yaml
-                    
-                    kubectl apply -f deploy/deploy.yaml -n identi-authx
                     """
+                    withKubeConfig([credentialsId: 'KUBE_QA_AUTH']) {
+                        sh 'kubectl apply -f deploy/deploy.yaml -n identi-authx'
+                    }
                 }
             }
         }
