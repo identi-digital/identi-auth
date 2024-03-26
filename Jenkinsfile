@@ -9,7 +9,7 @@ pipeline {
               containers:
               
               - name: cicd-agent
-                image: codigonet/jnk-agent
+                image: 162425417847.dkr.ecr.us-east-2.amazonaws.com/jnk-agent
                 command:
                 - sleep
                 args:
@@ -52,11 +52,7 @@ pipeline {
         stage('SonarQube Quality Gate') {
             steps{
                 script{
-                    echo "Ejecución de QualityGate"
-                    // def scannerHome = tool 'sonarqube';
-                    // withSonarQubeEnv() {
-                    //   sh "${scannerHome}/bin/sonar-scanner"
-                    // }
+                    echo "QualityGate Plan"
                 }
             }
         }
@@ -65,7 +61,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    echo "Ejecutar Build necesario..."
+                    echo "Build steps..."
                     '''
                 }
             }
@@ -74,11 +70,11 @@ pipeline {
         stage('Testing') {
             steps {
                 script {
-                    echo "Ejecución de Pruebas Unitarias"
+                    echo "Unit testing Plan"
                     // sh '''
                     // pytest
                     // '''
-                    echo "Ejecución de Pruebas Selenium"
+                    echo "Selenium Unit testing Plan"
                     // sh '''
                     // selenium-cli -f test/panel.json --level 3
                     // '''
@@ -89,15 +85,15 @@ pipeline {
         stage('QA Plan') {
             steps {
                 script {
-                    echo "Obtener scripts de Test https://github.com/codigonet/simple-scripts"
+                    echo "Download Base QA scripts https://github.com/codigonet/simple-scripts"
                     sh 'curl https://raw.githubusercontent.com/codigonet/simple-scripts/master/test-1.sh -o test-1.sh'
                     sh 'curl https://raw.githubusercontent.com/codigonet/simple-scripts/master/test-2-error.sh -o test-2-error.sh'
                     
-                    echo "Ejecución de Pruebas Integradas"
+                    echo "Integration Tests Plan"
                     sh 'chmod +x test-1.sh'
                     sh './test-1.sh'
 
-                    // echo "Ejecución de Pruebas Integradas (con error)"
+                    // echo "Integration Tests Plan (with error)"
                     // sh 'chmod +x test-2-error.sh'
                     // sh './test-2-error.sh'
 
@@ -117,9 +113,7 @@ pipeline {
                         '''
 
                         withCredentials([string(credentialsId: 'ECR-Host', variable: 'ECR_HOST')]){
-                            // For ECR, IMAGE_NAME needs to append ECR repository full path
                             IMAGE_NAME = "${ECR_HOST}/identi-authx:v1.0.0-${env.BUILD_NUMBER}"
-                            // IMAGE_NAME = "identi-authx:v1.0.0-${env.BUILD_NUMBER}"
                         }
                         
                         sh "echo ${IMAGE_NAME} >> docker-image.txt"
@@ -144,14 +138,12 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh """
                     echo "Image to DEPLOY [${IMAGE_NAME}]"
+                    sh """
                     cp deploy/deploy.template-yaml deploy/deploy.yaml
-                    sed -i -e '/image: /s|identi-auth:latest|${IMAGE_NAME}|g' deploy/deploy.yaml
+                    sed -i -e '/image: /s|identi-authx:latest|${IMAGE_NAME}|g' deploy/deploy.yaml
                     """
-                    withKubeConfig([credentialsId: 'KUBE_QA_AUTH']) {
-                        sh 'kubectl apply -f deploy/deploy.yaml -n identi-authx'
-                    }
+                    sh 'kubectl apply -f deploy/deploy.yaml -n identi-auth'
                 }
             }
         }
@@ -159,12 +151,14 @@ pipeline {
     }
     
     post {
+        success{
+            echo "Process [$env.BUILD_NUMBER] OK."
+        }
         failure {
-            echo "Proceso [$env.BUILD_NUMBER] con error."
+            echo "Process [$env.BUILD_NUMBER] with errors."
         }
         always {
-            echo "Proceso [$env.BUILD_NUMBER] finalizado."
-            // Informar resultado por Slack #
+            echo "Process [$env.BUILD_NUMBER] finished."
         }
     }
 }

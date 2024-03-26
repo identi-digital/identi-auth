@@ -14,7 +14,7 @@ spec:
         app: authx
     spec:
       containers:
-      - image: identi-auth:latest
+      - image: identi-authx:latest
         name: authx
         ports:
         - containerPort: 9000
