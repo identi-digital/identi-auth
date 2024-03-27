@@ -9,7 +9,7 @@ pipeline {
               containers:
               
               - name: cicd-agent
-                image: 162425417847.dkr.ecr.us-east-2.amazonaws.com/jnk-agent:latest
+                image: codigonet/jnk-agent:latest
                 command:
                 - sleep
                 args:
